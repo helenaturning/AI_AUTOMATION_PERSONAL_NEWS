@@ -1,0 +1,255 @@
+{
+  "name": "Binôme 2 : News + Newsletter",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "name": "Déclencheur Programmé",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        96
+      ],
+      "id": "60b5594b-625c-46c7-b8ba-d42c392b01bd"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.simplecast.com/54nAGcIl",
+        "options": {}
+      },
+      "name": "Récupérer Actus IA",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "89e84a62-1126-4f73-9b37-64a7ec48b0e0"
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {}
+      },
+      "name": "Récupérer Actus Tech",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        224,
+        192
+      ],
+      "id": "ca6c58bb-882b-4ce5-abe4-ae5db451c6e0"
+    },
+    {
+      "parameters": {},
+      "id": "686e54bc-a657-4fe4-ba36-614fa02345c6",
+      "name": "Fusionner les Actus",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "text": "=Titre de l'article : {{ $json.title }}\nContenu de l'article : {{ $json.contentSnippet }}",
+        "options": {}
+      },
+      "name": "Filtrer et Résumer (IA)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        96
+      ],
+      "id": "c02d47a7-3260-435c-bf15-6272837d343a"
+    },
+    {
+      "parameters": {
+        "fromEmail": "newsletter@mon-app-n8n.com",
+        "toEmail": " arno93@ethereal.email ",
+        "subject": "Votre Newsletter Quotidienne",
+        "text": "={{ $json.output }}",
+        "options": {}
+      },
+      "name": "Envoyer la Newsletter",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        96
+      ],
+      "id": "6dc49948-7604-4946-87b6-2265113b6d3e",
+      "webhookId": "5dffaa21-590d-4414-9d88-3324e9779dd4",
+      "retryOnFail": true,
+      "credentials": {
+        "smtp": {
+          "id": "fO6tXIv1s6kI3gtu",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "bb4c00f5-fa15-470a-814d-123d81f0f42e",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        192
+      ],
+      "id": "5e90095c-32b4-4bcb-822c-1bcbe9bc5d46",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        976,
+        320
+      ],
+      "id": "96d24119-fac2-4272-bdee-01f6de2e5042",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "HfCeGJ639bh8skk3",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Déclencheur Programmé": {
+      "main": [
+        [
+          {
+            "node": "Récupérer Actus IA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Récupérer Actus Tech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Récupérer Actus IA": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Récupérer Actus Tech": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fusionner les Actus": {
+      "main": [
+        [
+          {
+            "node": "Filtrer et Résumer (IA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrer et Résumer (IA)": {
+      "main": [
+        [
+          {
+            "node": "Envoyer la Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Fusionner les Actus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Fusionner les Actus",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Filtrer et Résumer (IA)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "48a5125e-fb49-4d1b-a23c-4d96b9e8fa64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "96a7532a9f533ff7117fa05f5b7778198a024c475d46c07386bb203e87992184"
+  },
+  "nodeGroups": [],
+  "id": "gqN6DyVf0Y8hRHcC",
+  "tags": []
+}
